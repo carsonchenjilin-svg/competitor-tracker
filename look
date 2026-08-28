@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>竞品监控看板 | Competitor Tracker</title>
+<!-- PapaParse：解析 CSV；Chart.js：画图表 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#FAF6F0; --ink:#2B2018; --accent:#8B5A2B;
+    --slate:#7A6A58; --mist:#E6DDD1; --card:#FFFFFF;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--paper);color:var(--ink);
+    font-family:-apple-system,'PingFang SC','Noto Sans SC',sans-serif;
+    font-size:15px;line-height:1.6;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:26px;margin-bottom:6px}
+  .sub{color:var(--slate);font-size:13.5px;margin-bottom:34px}
+  h2{font-size:17px;margin:38px 0 16px;color:var(--accent)}
+  .panel{
+    background:var(--card);border:1px solid var(--mist);
+    border-radius:14px;padding:22px;
+  }
+  /* 最新快照表格 */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--mist)}
+  th{color:var(--slate);font-weight:600;font-size:12.5px;letter-spacing:.04em}
+  tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums}
+  .loading{color:var(--slate);padding:40px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>竞品监控看板</h1>
+  <p class="sub">数据来源：GitHub Actions 每日自动抓取 Google Play（美国区）· 数据文件 <a href="data.csv">data.csv</a></p>
+
+  <h2>最新快照</h2>
+  <div class="panel">
+    <div id="table" class="loading">加载中……</div>
+  </div>
+
+  <h2>评分趋势</h2>
+  <div class="panel"><canvas id="scoreChart" height="110"></canvas></div>
+
+  <h2>累计评分数趋势</h2>
+  <div class="panel"><canvas id="ratingsChart" height="110"></canvas></div>
+</div>
+
+<script>
+// 棕色系配色，给每个 App 一条线
+const COLORS = ['#8B5A2B','#C0803F','#5A3E22','#A98A5B','#D9B382','#7A6A58'];
+
+// 读取同仓库的 data.csv
+Papa.parse('data.csv', {
+  download: true, header: true, skipEmptyLines: true,
+  complete: (res) => {
+    const rows = res.data;
+    if (!rows.length) {
+      document.getElementById('table').textContent = '还没有数据，等 bot 跑过一次后刷新。';
+      return;
+    }
+    // 按 App 分组
+    const apps = [...new Set(rows.map(r => r.app))];
+    const dates = [...new Set(rows.map(r => r.date))].sort();
+
+    // ===== 最新快照表格：每个 App 取最后一条记录 =====
+    const latest = apps.map(name => {
+      const rs = rows.filter(r => r.app === name);
+      return rs[rs.length - 1];
+    });
+    let html = '<table><tr><th>App</th><th>评分</th><th>累计评分数</th><th>评论数</th><th>安装量</th><th>版本</th><th>更新日期</th></tr>';
+    latest.forEach(r => {
+      html += `<tr><td><b>${r.app}</b></td>
+        <td class="num">${Number(r.score).toFixed(2)}</td>
+        <td class="num">${Number(r.ratings).toLocaleString()}</td>
+        <td class="num">${Number(r.reviews).toLocaleString()}</td>
+        <td class="num">${r.installs}</td>
+        <td>${r.version || '-'}</td><td>${r.date}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('table').innerHTML = html;
+
+    // ===== 趋势图工具：某字段按日期取值 =====
+    const seriesOf = (field) => apps.map((name, i) => ({
+      label: name,
+      data: dates.map(d => {
+        const hit = rows.find(r => r.app === name && r.date === d);
+        return hit ? Number(hit[field]) : null;
+      }),
+      borderColor: COLORS[i % COLORS.length],
+      backgroundColor: COLORS[i % COLORS.length],
+      tension: .25, spanGaps: true, pointRadius: 3,
+    }));
+
+    const baseOpts = {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { grace: '5%' } },
+    };
+    new Chart(document.getElementById('scoreChart'),
+      { type: 'line', data: { labels: dates, datasets: seriesOf('score') }, options: baseOpts });
+    new Chart(document.getElementById('ratingsChart'),
+      { type: 'line', data: { labels: dates, datasets: seriesOf('ratings') }, options: baseOpts });
+  },
+  error: () => {
+    document.getElementById('table').textContent = '读取 data.csv 失败——确认它和 index.html 在同一个仓库。';
+  }
+});
+</script>
+</body>
+</html>

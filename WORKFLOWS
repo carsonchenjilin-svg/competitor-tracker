@@ -1,0 +1,28 @@
+# 每天定时运行 track.py 并把数据提交回仓库
+name: Daily Tracker
+
+on:
+  schedule:
+    - cron: "0 1 * * *"   # 每天 UTC 1点 = 北京时间早上9点
+  workflow_dispatch:        # 允许在 Actions 页面手动触发（测试用）
+
+permissions:
+  contents: write           # 允许把 data.csv 写回仓库
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install google-play-scraper
+      - run: python track.py
+      - name: Commit data
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data.csv
+          git diff --cached --quiet || git commit -m "data: $(date -u +%F)"
+          git push

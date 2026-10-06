@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SignalIQ — Classroom Demo</title>
+<style>
+:root{--navy:#0d1f4e;--blue:#2675ff;--purple:#6d5dfc;--green:#1aa06d;--ink:#152443;--muted:#6f7e9a;--line:#e3eaf6;--bg:#f4f8ff;--card:#fff}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+.app{min-height:100vh;display:grid;grid-template-columns:220px 1fr}.sidebar{height:100vh;position:sticky;top:0;padding:26px 18px;background:#fff;border-right:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:25px;color:var(--navy);margin:0 8px 28px}.logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#31d5dc,#2d72ff 62%,#7257ff);display:grid;place-items:center;color:white;font-weight:900}.logo span{color:var(--blue)}
+.nav{display:flex;flex-direction:column;gap:7px}.nav button{border:0;background:transparent;text-align:left;padding:12px 13px;border-radius:12px;color:#486080;cursor:pointer}.nav button.active,.nav button:hover{background:#eaf2ff;color:#135cdf;font-weight:700}
+.plan{position:absolute;bottom:22px;left:18px;right:18px;padding:15px;border-radius:16px;background:#eef5ff;border:1px solid #dce8fb}.plan b{display:block}.plan p{font-size:12px;color:var(--muted);line-height:1.4}.plan button{width:100%;border:0;border-radius:10px;background:var(--blue);color:#fff;padding:9px;font-weight:700}
+.main{padding:0 30px 36px}.topbar{height:72px;display:flex;justify-content:space-between;align-items:center;gap:18px}.search{flex:1;max-width:560px}.search input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:white}.top{display:flex;gap:10px;align-items:center}.chip{padding:8px 11px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:12px;color:#566b8a}.avatar{width:36px;height:36px;border-radius:50%;background:#dbeaff;display:grid;place-items:center;font-weight:800;color:#174f9c}
+.hero{background:linear-gradient(120deg,#fff 0%,#f7fbff 62%,#edf8ef 100%);border:1px solid var(--line);border-radius:22px;padding:25px 27px;margin-bottom:17px;box-shadow:0 18px 50px rgba(32,76,135,.07)}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:11px;color:var(--blue);font-weight:800}.hero h1{margin:6px 0 7px;font-size:31px;color:#081c49}.hero p{margin:0;color:var(--muted)}.demo{display:inline-block;margin-top:13px;padding:6px 9px;background:#fff5cf;color:#896400;border:1px solid #f1dea1;border-radius:999px;font-size:11px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:17px}.metric{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px}.metric strong{font-size:23px;color:#0c204f;display:block}.metric span{font-size:12px;color:var(--muted)}.up{color:var(--green)!important;font-weight:700}
+.workflow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:17px}.step{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 17px;cursor:pointer}.step.active{background:linear-gradient(135deg,#edf6ff,#f5f2ff);border-color:#abc7ff}.num{width:27px;height:27px;border-radius:50%;display:inline-grid;place-items:center;background:var(--blue);color:#fff;font-weight:800;font-size:12px;margin-right:8px}.step:nth-child(2) .num{background:var(--purple)}.step p{font-size:12px;color:var(--muted);margin:6px 0 0 38px}
+.grid{display:grid;grid-template-columns:1.05fr .9fr .95fr;gap:13px}.panel{background:#fff;border:1px solid var(--line);border-radius:17px;overflow:hidden;box-shadow:0 12px 30px rgba(33,74,127,.04)}.ph{padding:14px 16px;border-bottom:1px solid #edf2f8;display:flex;justify-content:space-between}.ph b{color:#102652}.link{font-size:11px;color:var(--blue);cursor:pointer}.pb{padding:13px}
+.row{display:grid;grid-template-columns:40px 1fr auto;gap:9px;align-items:center;padding:8px;border-radius:12px;background:#fbfdff;border:1px solid #edf3fb;margin-bottom:9px}.icon{width:40px;height:40px;border-radius:10px;background:#eaf3ff;display:grid;place-items:center;font-size:21px}.row b{display:block;font-size:13px}.row small{display:block;color:var(--muted);font-size:10px}.tag{font-size:9px;padding:5px 7px;border-radius:999px;background:#eef5ff;color:#245cc2}.green{background:#e7f8f1;color:#147c58}.purple{background:#f0edff;color:#5a44cb}
+.creator{padding:12px;border-radius:13px;background:linear-gradient(145deg,#f8fbff,#f3f7ff);border:1px solid #e4edf9;margin-bottom:10px}.creator strong{font-size:13px}.score{float:right;font-size:10px;color:var(--green);font-weight:800}.faces{display:flex;margin-top:10px}.face{width:32px;height:32px;border-radius:50%;border:2px solid #fff;margin-left:-6px;background:linear-gradient(145deg,#cde1ff,#ffd8c7);display:grid;place-items:center}.face:first-child{margin-left:0}.meta{font-size:10px;color:var(--muted);margin-top:7px}
+.reco{background:linear-gradient(145deg,#f2f3ff,#fafaff);border:1px solid #e2e4ff;border-radius:14px;padding:13px}.reco h3{font-size:15px;line-height:1.35;margin:9px 0}.action{display:grid;grid-template-columns:23px 1fr;gap:8px;align-items:center;background:#fff;border:1px solid #e7ebfa;border-radius:9px;padding:7px;font-size:10px;margin-bottom:7px}.action i{font-style:normal;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;background:#356cf0;color:#fff;font-weight:800}.brief{width:100%;border:0;border-radius:10px;background:linear-gradient(90deg,#2c78ff,#6758f7);color:#fff;padding:10px;font-weight:800}
+.view{display:none}.view.active{display:block}.section-title h2{margin:8px 0 4px;font-size:24px}.section-title p{margin:0 0 16px;color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}th,td{text-align:left;padding:13px;border-bottom:1px solid #eef2f8;font-size:13px}th{background:#f6f9ff;color:#526686}.status{font-size:10px;padding:5px 7px;border-radius:999px;background:#eaf8f2;color:#11805a}.status.warn{background:#fff4df;color:#a46600}.note{text-align:right;font-size:10px;color:#8d99ae;margin-top:12px}
+.toast{position:fixed;right:24px;bottom:24px;background:#0d214e;color:#fff;padding:12px 15px;border-radius:12px;opacity:0;transform:translateY(20px);transition:.25s}.toast.show{opacity:1;transform:none}
+@media(max-width:1000px){.app{grid-template-columns:74px 1fr}.logo{font-size:0}.nav button{font-size:0;text-align:center}.plan{display:none}.metrics{grid-template-columns:repeat(2,1fr)}.grid,.workflow{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-mark">▥</div>Signal<span>IQ</span></div>
+  <nav class="nav">
+    <button class="active" data-view="dashboard">Dashboard</button>
+    <button data-view="competitors">Competitors</button>
+    <button data-view="creators">Creators</button>
+    <button data-view="recommendations">Recommendations</button>
+  </nav>
+  <div class="plan"><b>Growth Plan</b><p>15 competitors · 150 creator searches · AI recommendations</p><button onclick="toast('Growth Plan — $149/month')">$149 / month</button></div>
+</aside>
+<main class="main">
+  <div class="topbar">
+    <div class="search"><input id="search" placeholder="Search games, competitors, creators..." /></div>
+    <div class="top"><div class="chip">Illustrative Demo</div><div class="avatar">YS</div></div>
+  </div>
+
+  <section id="dashboard" class="view active">
+    <div class="hero"><div class="eyebrow">Weekly Growth Intelligence</div><h1>Little Farm Story — Growth Signals</h1><p>See what competitors changed, which creators are still untapped, and what to do next.</p><span class="demo">Concept mockup · illustrative classroom data</span></div>
+
+    <div class="metrics">
+      <div class="metric"><strong>3</strong><span>Competitor moves</span><span class="up"> · +1 this week</span></div>
+      <div class="metric"><strong>8</strong><span>Relevant creators</span><span class="up"> · +3 new</span></div>
+      <div class="metric"><strong>5</strong><span>Untapped creators</span><span class="up"> · high fit</span></div>
+      <div class="metric"><strong>3</strong><span>AI recommendations</span><span class="up"> · ready to act</span></div>
+    </div>
+
+    <div class="workflow">
+      <div class="step active" data-target="track"><span class="num">1</span><b>TRACK</b><p>Monitor competitor pricing, updates, campaigns and live events.</p></div>
+      <div class="step" data-target="discover"><span class="num">2</span><b>DISCOVER</b><p>Find relevant creators and gaps competitors have not captured.</p></div>
+      <div class="step" data-target="recommend"><span class="num">3</span><b>RECOMMEND</b><p>Turn market signals into clear growth actions.</p></div>
+    </div>
+
+    <div class="grid">
+      <div class="panel" id="trackPanel"><div class="ph"><b>Recent Competitor Activity</b><span class="link" onclick="switchView('competitors')">View all →</span></div><div class="pb">
+        <div class="row"><div class="icon">🏘️</div><div><b>Township</b><small>Seasonal event detected</small></div><span class="tag">Event</span></div>
+        <div class="row"><div class="icon">🐔</div><div><b>Hay Day</b><small>Limited-time starter bundle changed</small></div><span class="tag green">IAP</span></div>
+        <div class="row"><div class="icon">⛺</div><div><b>Klondike</b><small>New purchase offer detected</small></div><span class="tag purple">Offer</span></div>
+      </div></div>
+
+      <div class="panel" id="discoverPanel"><div class="ph"><b>Creator Opportunities</b><span class="link" onclick="switchView('creators')">View all →</span></div><div class="pb">
+        <div class="creator"><strong>8 creators posted farming / sim content</strong><span class="score">82–94% fit</span><div class="faces"><span class="face">👩🏻</span><span class="face">🧑🏻</span><span class="face">👩🏽</span><span class="face">🧑🏽</span></div><div class="meta">Cozy gaming · farming sims · mobile games</div></div>
+        <div class="creator"><strong>5 untapped by tracked competitors</strong><span class="score">High opportunity</span><div class="faces"><span class="face">🧑🏻</span><span class="face">👩🏻</span><span class="face">🧔🏻</span><span class="face">👩🏽</span></div><div class="meta">Potential outreach targets</div></div>
+      </div></div>
+
+      <div class="panel" id="recommendPanel"><div class="ph"><b>AI Recommendations</b><span class="link" onclick="switchView('recommendations')">View all →</span></div><div class="pb"><div class="reco"><span class="tag purple">High Impact</span><h3>Test a seasonal-event creative, review bundle pricing, and contact 3 untapped creators.</h3><div class="action"><i>1</i>Test seasonal event creative</div><div class="action"><i>2</i>Review bundle pricing</div><div class="action"><i>3</i>Contact top 3 untapped creators</div><button class="brief" onclick="toast('Weekly Growth Brief generated')">Generate Weekly Brief</button></div></div></div>
+    </div>
+    <div class="note">All examples are illustrative mock data for a classroom demo.</div>
+  </section>
+
+  <section id="competitors" class="view">
+    <div class="section-title"><h2>Competitor Intelligence</h2><p>Track the moves that matter instead of checking five tools manually.</p></div>
+    <table><thead><tr><th>Competitor</th><th>Latest signal</th><th>Category</th><th>Priority</th></tr></thead><tbody>
+      <tr><td><b>Township</b></td><td>Seasonal event detected</td><td>Live Ops</td><td><span class="status">High</span></td></tr>
+      <tr><td><b>Hay Day</b></td><td>Starter bundle changed</td><td>Monetization</td><td><span class="status">High</span></td></tr>
+      <tr><td><b>Klondike</b></td><td>New purchase offer detected</td><td>Monetization</td><td><span class="status warn">Medium</span></td></tr>
+    </tbody></table>
+    <div class="note">Illustrative demo data — not current market claims.</div>
+  </section>
+
+  <section id="creators" class="view">
+    <div class="section-title"><h2>Creator Discovery</h2><p>Find relevant creators your competitors have not already saturated.</p></div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="panel"><div class="pb"><div class="creator"><strong>@cozywithmia</strong><span class="score">94% fit</span><div class="faces"><span class="face">👩🏻</span></div><div class="meta">Cozy games · mobile sims<br>Competitor overlap: none</div></div></div></div>
+      <div class="panel"><div class="pb"><div class="creator"><strong>@farmgameben</strong><span class="score">91% fit</span><div class="faces"><span class="face">🧑🏻</span></div><div class="meta">Farming sims · reviews<br>Competitor overlap: none</div></div></div></div>
+      <div class="panel"><div class="pb"><div class="creator"><strong>@mobilewithrae</strong><span class="score">88% fit</span><div class="faces"><span class="face">👩🏽</span></div><div class="meta">Mobile gaming · UGC<br>Competitor overlap: low</div></div></div></div>
+    </div>
+  </section>
+
+  <section id="recommendations" class="view">
+    <div class="section-title"><h2>Next Best Actions</h2><p>SignalIQ converts competitor and creator signals into a prioritized action plan.</p></div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="panel"><div class="pb"><span class="tag">Creative</span><h3>Launch a seasonal-event creative test</h3><p style="color:var(--muted);font-size:13px">Competitor activity suggests live-event messaging is increasing.</p><span class="status">High priority</span></div></div>
+      <div class="panel"><div class="pb"><span class="tag green">Monetization</span><h3>Review starter-bundle positioning</h3><p style="color:var(--muted);font-size:13px">Two tracked competitors changed purchase offers in this illustrative demo.</p><span class="status warn">Medium priority</span></div></div>
+      <div class="panel"><div class="pb"><span class="tag purple">Creators</span><h3>Contact 3 untapped creators</h3><p style="color:var(--muted);font-size:13px">High-fit creators show little competitor overlap.</p><span class="status">High priority</span></div></div>
+    </div>
+  </section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const buttons=[...document.querySelectorAll('.nav button')];
+function switchView(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');buttons.forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
+buttons.forEach(b=>b.onclick=()=>switchView(b.dataset.view));
+document.querySelectorAll('.step').forEach(s=>s.onclick=()=>{document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));s.classList.add('active');document.getElementById(s.dataset.target+'Panel').scrollIntoView({behavior:'smooth',block:'center'})});
+function toast(msg){const t=document.getElementById('toast');t.textContent='✓ '+msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')toast('Search demo: '+(e.target.value||'Little Farm Story'))});
+</script>
+</body>
+</html>

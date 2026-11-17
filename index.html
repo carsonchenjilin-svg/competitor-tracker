@@ -52,7 +52,16 @@
     .app { background: var(--paper); text-align: left; border: 1px solid var(--line); border-radius: 7px; padding: 15px; min-width: 0; min-height: 136px; display: flex; flex-direction: column; color: var(--ink); }
     .app:hover { border-color: #a9c0ae; }
     .app[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
+    .app-heading { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+    .app-icon { flex: 0 0 46px; width: 46px; height: 46px; border: 1px solid #e3e8e3; border-radius: 11px; object-fit: cover; background: #f3f5f3; }
+    .app-icon-fallback { flex: 0 0 46px; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 11px; background: #e7eee8; color: #32674d; font-weight: 700; font-size: 14px; }
+    [hidden] { display: none !important; }
+    .app-info { display: block; min-width: 0; }
+    .table-app { display: flex; align-items: center; gap: 9px; min-width: 170px; }
+    .table-app .app-icon, .table-app .app-icon-fallback { flex-basis: 32px; width: 32px; height: 32px; border-radius: 8px; font-size: 10px; }
     .app-category { font-size: 11px; color: var(--muted); }
+    .app-heading .app-name { margin: 3px 0 0; }
+
     .app-name { display: block; font-size: 13px; font-weight: 650; line-height: 1.35; margin: 11px 0 15px; }
     .app-bottom { display: flex; justify-content: space-between; gap: 7px; align-items: end; margin-top: auto; font-size: 11px; color: var(--muted); }
     .app-score { font-weight: 700; color: var(--accent); font-size: 12px; }
@@ -182,6 +191,30 @@
         if (value !== undefined) e.textContent = value;
         return e;
       };
+      // Public app-listing images; show initials when an image cannot be loaded.
+      const appIcons = {
+        "Little Farm Story: Idle Tycoon": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/42/d3/1a/42d31ac7-9df6-6524-b1c3-fb2f982d5e0f/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/512x512bb.jpg",
+        "Township": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/3a/ab/a4/3aaba44d-465e-ffee-d48c-0ff4954d473b/AppIcon-0-0-85-220-0-4-0-2x.png/512x512bb.jpg",
+        "Klondike Adventures: Farm Game": "https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/f8/c7/e5/f8c7e5d1-3a0f-3d20-9b0b-684553abc735/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/512x512bb.jpg",
+        "Bermuda Adventures Farm Island": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e7/00/8c/e7008c97-7c1e-0da3-3e95-f0799f950b37/AppIcon-0-0-1x_U007emarketing-0-4-85-220.png/512x512bb.jpg",
+        "Hay Day": "https://cdn.influenster.com/media/product/image/53d240e0576ae8a0fb39bac7f4c6f09c.png"
+};
+      function iconFor(name) {
+        const fallback = el('span', 'app-icon-fallback', name.split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase());
+        const wrap = el('span');
+        if (!appIcons[name]) { wrap.append(fallback); return wrap; }
+        const img = document.createElement('img');
+        img.className = 'app-icon';
+        img.alt = name + ' app icon';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
+        fallback.hidden = true;
+        img.addEventListener('error', () => { img.remove(); fallback.hidden = false; }, { once: true });
+        img.src = appIcons[name];
+        wrap.append(img, fallback);
+        return wrap;
+      }
       const matching = () => state.latest.filter(r => (r.app + ' ' + (r.genre || '')).toLowerCase().includes(state.query));
 
       function overview() {
@@ -201,8 +234,12 @@
           const card = el('button', 'app'); card.type = 'button';
           card.setAttribute('aria-pressed', String(state.selected === r.app));
           card.setAttribute('aria-label', 'Show trends for ' + r.app);
-          card.append(el('span', 'app-category', r.genre || 'Mobile app'));
-          card.append(el('span', 'app-name', r.app));
+          const heading = el('div', 'app-heading');
+          const info = el('span', 'app-info');
+          info.append(el('span', 'app-category', r.genre || 'Mobile app'));
+          info.append(el('span', 'app-name', r.app));
+          heading.append(iconFor(r.app), info);
+          card.append(heading);
           const bottom = el('div', 'app-bottom');
           const score = Number(r.score);
           bottom.append(el('span', 'app-score', (Number.isFinite(score) ? score.toFixed(2) : '—') + ' ★'));
@@ -223,7 +260,17 @@
           const tr = el('tr');
           const rating = Number(r.score);
           const values = [r.app, r.genre || '—', Number.isFinite(rating) ? rating.toFixed(2) : '—', nf(r.ratings), nf(r.reviews), r.installs || '—', r.version || '—'];
-          values.forEach((value, index) => tr.append(el('td', index === 0 ? 'name-cell' : index === 2 ? 'rating-cell' : '', value)));
+          values.forEach((value, index) => {
+            const td = el('td', index === 0 ? 'name-cell' : index === 2 ? 'rating-cell' : '');
+            if (index === 0) {
+              const appRow = el('div', 'table-app');
+              appRow.append(iconFor(r.app), el('span', '', value));
+              td.append(appRow);
+            } else {
+              td.textContent = value;
+            }
+            tr.append(td);
+          });
           root.append(tr);
         });
       }

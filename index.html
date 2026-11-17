@@ -51,6 +51,12 @@
     .apps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
     .app { background: var(--paper); text-align: left; border: 1px solid var(--line); border-radius: 7px; padding: 15px; min-width: 0; min-height: 136px; display: flex; flex-direction: column; color: var(--ink); }
     .app:hover { border-color: #a9c0ae; }
+    .app-main-link { color: inherit; display: flex; flex-direction: column; text-decoration: none; flex: 1; min-width: 0; }
+    .app-main-link:hover .app-name { text-decoration: underline; text-underline-offset: 2px; }
+    .app-main-link:focus-visible, .app-trend-button:focus-visible, .table-store-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .app-trend-button { align-self: flex-start; margin-top: 14px; padding: 4px 0; color: var(--accent); background: transparent; border: 0; font-size: 11px; font-weight: 650; text-decoration: underline; text-underline-offset: 2px; }
+    .table-store-link { display: inline-flex; align-items: center; gap: 9px; color: inherit; text-decoration: none; }
+    .table-store-link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
     .app[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-wash); }
     .app-heading { display: flex; align-items: center; gap: 10px; min-height: 48px; }
     .app-icon { flex: 0 0 46px; width: 46px; height: 46px; border: 1px solid #e3e8e3; border-radius: 11px; object-fit: cover; background: #f3f5f3; }
@@ -137,7 +143,7 @@
 
     <section id="apps">
       <div class="section-top">
-        <div><h2 class="section-title">Tracked Apps</h2><p class="section-note">Select an app to focus the trend charts; click again to show all.</p></div>
+        <div><h2 class="section-title">Tracked Apps</h2><p class="section-note">Click an app to open Google Play, or use View trends to focus the charts.</p></div>
         <input class="search" id="appSearch" type="search" placeholder="Search apps or categories" aria-label="Search apps or categories">
       </div>
       <div class="apps" id="appList"><div class="empty">Loading apps...</div></div>
@@ -215,6 +221,13 @@
         wrap.append(img, fallback);
         return wrap;
       }
+      const playStoreLinks = {
+        'Little Farm Story: Idle Tycoon': 'https://play.google.com/store/apps/details?id=com.h8games.littlefarmstory',
+        'Township': 'https://play.google.com/store/apps/details?id=com.playrix.township',
+        'Klondike Adventures: Farm Game': 'https://play.google.com/store/apps/details?id=com.vizorapps.klondike',
+        'Bermuda Adventures Farm Island': 'https://play.google.com/store/apps/details?id=com.samfinaco.paradise',
+        'Hay Day': 'https://play.google.com/store/apps/details?id=com.supercell.hayday'
+      };
       const matching = () => state.latest.filter(r => (r.app + ' ' + (r.genre || '')).toLowerCase().includes(state.query));
 
       function overview() {
@@ -231,21 +244,31 @@
         const items = matching();
         if (!items.length) { root.append(el('div', 'empty', 'No apps match your search.')); return; }
         items.forEach(r => {
-          const card = el('button', 'app'); card.type = 'button';
+          const card = el('div', 'app');
           card.setAttribute('aria-pressed', String(state.selected === r.app));
-          card.setAttribute('aria-label', 'Show trends for ' + r.app);
+          const link = el('a', 'app-main-link');
+          link.href = playStoreLinks[r.app] || 'https://play.google.com/store/search?q=' + encodeURIComponent(r.app) + '&c=apps';
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.setAttribute('aria-label', 'Open ' + r.app + ' on Google Play');
+          link.title = 'Open ' + r.app + ' on Google Play';
           const heading = el('div', 'app-heading');
           const info = el('span', 'app-info');
           info.append(el('span', 'app-category', r.genre || 'Mobile app'));
           info.append(el('span', 'app-name', r.app));
           heading.append(iconFor(r.app), info);
-          card.append(heading);
+          link.append(heading);
           const bottom = el('div', 'app-bottom');
           const score = Number(r.score);
           bottom.append(el('span', 'app-score', (Number.isFinite(score) ? score.toFixed(2) : '—') + ' ★'));
           bottom.append(el('span', '', r.installs || '—'));
-          card.append(bottom);
-          card.addEventListener('click', () => { state.selected = state.selected === r.app ? null : r.app; cards(); charts(); });
+          link.append(bottom);
+          card.append(link);
+          const trendButton = el('button', 'app-trend-button', state.selected === r.app ? 'Show all trends' : 'View trends');
+          trendButton.type = 'button';
+          trendButton.setAttribute('aria-label', 'View rating trends for ' + r.app);
+          trendButton.addEventListener('click', () => { state.selected = state.selected === r.app ? null : r.app; cards(); charts(); });
+          card.append(trendButton);
           root.append(card);
         });
       }
@@ -263,9 +286,13 @@
           values.forEach((value, index) => {
             const td = el('td', index === 0 ? 'name-cell' : index === 2 ? 'rating-cell' : '');
             if (index === 0) {
-              const appRow = el('div', 'table-app');
-              appRow.append(iconFor(r.app), el('span', '', value));
-              td.append(appRow);
+              const appLink = el('a', 'table-app table-store-link');
+              appLink.href = playStoreLinks[r.app] || 'https://play.google.com/store/search?q=' + encodeURIComponent(r.app) + '&c=apps';
+              appLink.target = '_blank';
+              appLink.rel = 'noopener noreferrer';
+              appLink.title = 'Open ' + r.app + ' on Google Play';
+              appLink.append(iconFor(r.app), el('span', '', value));
+              td.append(appLink);
             } else {
               td.textContent = value;
             }
